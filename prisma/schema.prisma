@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum Rol {
+  admin
+  consulta
+}
+enum TipoMovimiento {
+  alta
+  asignacion
+  reasignacion
+  devolucion
+  edicion
+  baja
+  generacion
+}
+model Administrador {
+  id String @id @default(cuid())
+  usuario String @unique
+  nombre String
+  passwordHash String
+  rol Rol @default(consulta)
+  activo Boolean @default(true)
+  sessionVersion Int @default(0)
+  createdAt DateTime @default(now())
+  movimientos Movimiento[]
+  eventos EventoUsuario[]
+}
+model Cuentadante {
+  id String @id @default(cuid())
+  nombre String
+  jefe String @default("")
+  sede String @default("")
+  contacto String @default("")
+  equipos Equipo[]
+}
+model Equipo {
+  id String @id @default(cuid())
+  placaSena String @unique
+  componente String @default("")
+  marca String @default("")
+  modelo String @default("")
+  serial String @default("")
+  sede String @default("")
+  disco String @default("")
+  procesador String @default("")
+  ram String @default("")
+  dominio String @default("")
+  hostname String @default("")
+  ficha Json @default("{}")
+  contexto Json @default("{}")
+  origen Json @default("{}")
+  grupo String @default("Manual")
+  activo Boolean @default(true)
+  version Int @default(1)
+  cuentadanteId String?
+  cuentadante Cuentadante? @relation(fields:[cuentadanteId],references:[id])
+  movimientos Movimiento[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([grupo,activo])
+}
+model Movimiento {
+  id String @id @default(cuid())
+  equipoId String
+  equipo Equipo @relation(fields:[equipoId],references:[id],onDelete:Restrict)
+  tipo TipoMovimiento
+  autorId String
+  autor Administrador @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  detalle String
+  cambios Json @default("{}")
+  createdAt DateTime @default(now())
+  @@index([equipoId,createdAt])
+  @@index([createdAt])
+}
+model EventoUsuario {
+  id String @id @default(cuid())
+  autorId String
+  autor Administrador @relation(fields:[autorId],references:[id])
+  destinoId String
+  detalle String
+  createdAt DateTime @default(now())
+}
+model LoginIntento {
+  clave String @id
+  intentos Int @default(0)
+  ventana DateTime @default(now())
+}
+model Importacion {
+  hash String @id
+  archivo String
+  resumen Json
+  createdAt DateTime @default(now())
+}
+model IncidenciaImportacion {
+  id String @id @default(cuid())
+  hash String
+  grupo String
+  fila Int
+  placaSena String
+  datos Json
+  resuelta Boolean @default(false)
+  equipoId String?
+  @@unique([hash,grupo,fila])
+}
