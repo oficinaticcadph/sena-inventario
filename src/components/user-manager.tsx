@@ -13,6 +13,7 @@ export function UserManager({
     [success, setSuccess] = useState(''),
     [busy, setBusy] = useState(false);
   const router = useRouter();
+  const [editing, setEditing] = useState<(typeof users)[number] | null>(null);
   async function save(data: unknown, method: string) {
     setBusy(true);
     setError('');
@@ -46,6 +47,74 @@ export function UserManager({
           {success}
         </div>
       )}
+      {editing && (
+        <section className="panel" aria-label="Editar usuario">
+          <div className="panel-head">
+            <h2>Editar usuario: {editing.usuario}</h2>
+          </div>
+          <form
+            key={editing.id}
+            className="panel-body"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const fields = Object.fromEntries(new FormData(e.currentTarget));
+              if (!fields.password) delete fields.password;
+              if (await save({ ...fields, id: editing.id, accion: 'editar' }, 'PATCH'))
+                setEditing(null);
+            }}
+          >
+            <div className="forms-grid">
+              <label className="field">
+                Usuario
+                <input
+                  name="usuario"
+                  defaultValue={editing.usuario}
+                  required
+                  pattern="[a-z0-9._\-]{3,80}"
+                  maxLength={80}
+                />
+              </label>
+              <label className="field">
+                Nombre completo
+                <input
+                  name="nombre"
+                  defaultValue={editing.nombre}
+                  required
+                  minLength={2}
+                  maxLength={120}
+                />
+              </label>
+              <label className="field">
+                Nueva contraseña
+                <input
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={12}
+                  maxLength={72}
+                />
+                <small>
+                  Déjala vacía para conservar la actual. Mínimo 12 caracteres. Al cambiarla se
+                  cerrarán las sesiones de esta cuenta.
+                </small>
+              </label>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button className="button" disabled={busy}>
+                Guardar cambios
+              </button>
+              <button
+                type="button"
+                className="button secondary"
+                disabled={busy}
+                onClick={() => setEditing(null)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
       <section className="panel">
         <div className="panel-head">
           <h2>Cuentas del sistema</h2>
@@ -74,6 +143,13 @@ export function UserManager({
                     </span>
                   </td>
                   <td>
+                    <button
+                      className="button secondary"
+                      disabled={busy}
+                      onClick={() => setEditing(u)}
+                    >
+                      Editar
+                    </button>{' '}
                     {u.id !== currentId ? (
                       <button
                         disabled={busy}

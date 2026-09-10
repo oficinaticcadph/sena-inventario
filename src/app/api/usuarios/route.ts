@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { hash } from 'bcryptjs';
 import { apiError, requireUser, checkOrigin, body, HttpError } from '@/lib/access';
-import { usuarioSchema } from '@/lib/validation';
+import { usuarioSchema, passwordSchema } from '@/lib/validation';
 import { z } from 'zod';
 export async function POST(req: Request) {
   try {
@@ -28,10 +28,47 @@ export async function PATCH(req: Request) {
   try {
     checkOrigin(req);
     const actor = await requireUser(true);
-    const { id, activo } = z
-      .object({ id: z.string(), activo: z.boolean() })
-      .strict()
-      .parse(await body(req));
+    const input = await body(req);
+    if (input && input.accion === 'editar') {
+      const data = z
+        .object({
+          accion: z.literal('editar'),
+          id: z.string().min(1),
+          nombre: usuarioSchema.shape.nombre,
+          usuario: usuarioSchema.shape.usuario,
+          password: passwordSchema.optional(),
+        })
+        .strict()
+        .parse(input);
+      const passwordHash = data.password ? await hash(data.password, 12) : undefined;
+      await db.$transaction(
+        async (tx) => {
+          const previous = await tx.administrador.findUnique({ where: { id: data.id } });
+          if (!previous) throw new HttpError(404, 'Usuario no encontrado.');
+          await tx.administrador.update({
+            where: { id: data.id },
+            data: {
+              nombre: data.nombre,
+              usuario: data.usuario,
+              ...(passwordHash ? { passwordHash } : {}),
+              ...(passwordHash || previous.usuario !== data.usuario
+                ? { sessionVersion: { increment: 1 } }
+                : {}),
+            },
+          });
+          await tx.eventoUsuario.create({
+            data: {
+              autorId: actor.id,
+              destinoId: data.id,
+              detalle: `Cuenta editada: nombre y usuario actualizados.${passwordHash ? ' Contraseña restablecida; sesiones revocadas.' : ''}`,
+            },
+          });
+        },
+        { isolationLevel: 'Serializable' },
+      );
+      return Response.json({ ok: true });
+    }
+    const { id, activo } = z.object({ id: z.string(), activo: z.boolean() }).strict().parse(input);
     if (id === actor.id) throw new HttpError(400, 'No puedes desactivar tu propia cuenta.');
     await db.$transaction(
       async (tx) => {

@@ -72,18 +72,53 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const user = await requireUser(true);
     const { id } = await params;
     const data = z
-      .object({ version: z.number().int(), detalle: z.string().trim().min(4).max(1000) })
+      .object({
+        version: z.number().int(),
+        detalle: z.string().trim().min(4).max(1000),
+        permanente: z.boolean().default(false),
+        placa: z.string().optional(),
+      })
       .parse(await body(req));
-    await db.$transaction(async (tx) => {
-      const result = await tx.equipo.updateMany({
-        where: { id, version: data.version, activo: true },
-        data: { activo: false, version: { increment: 1 } },
-      });
-      if (!result.count) throw new HttpError(409, 'El equipo cambió o ya está dado de baja.');
-      await tx.movimiento.create({
-        data: { equipoId: id, autorId: user.id, tipo: 'baja', detalle: data.detalle },
-      });
-    });
+    await db.$transaction(
+      async (tx) => {
+        if (data.permanente) {
+          const equipo = await tx.equipo.findUnique({
+            where: { id },
+            include: { movimientos: true },
+          });
+          if (!equipo) throw new HttpError(404, 'Equipo no encontrado.');
+          if (equipo.version !== data.version)
+            throw new HttpError(409, 'El equipo cambió. Recarga antes de eliminar.');
+          if (data.placa !== equipo.placaSena)
+            throw new HttpError(400, 'La placa de confirmación no coincide.');
+          await tx.equipoEliminado.create({
+            data: {
+              equipoId: id,
+              placaSena: equipo.placaSena,
+              autorId: user.id,
+              motivo: data.detalle,
+              respaldo: JSON.parse(JSON.stringify(equipo)),
+            },
+          });
+          await tx.movimiento.deleteMany({ where: { equipoId: id } });
+          await tx.incidenciaImportacion.updateMany({
+            where: { equipoId: id },
+            data: { equipoId: null },
+          });
+          await tx.equipo.delete({ where: { id } });
+          return;
+        }
+        const result = await tx.equipo.updateMany({
+          where: { id, version: data.version, activo: true },
+          data: { activo: false, version: { increment: 1 } },
+        });
+        if (!result.count) throw new HttpError(409, 'El equipo cambió o ya está dado de baja.');
+        await tx.movimiento.create({
+          data: { equipoId: id, autorId: user.id, tipo: 'baja', detalle: data.detalle },
+        });
+      },
+      { isolationLevel: 'Serializable' },
+    );
     return Response.json({ ok: true });
   } catch (e) {
     return apiError(e);

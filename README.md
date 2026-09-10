@@ -178,3 +178,8 @@ Las pruebas de Excel comprueban el mapeo, fecha colombiana, ausencia de datos/fi
 - `private/`: datos y credenciales locales, **nunca publicar**.
 
 Los logos suministrados se usan sin recolorearlos. La interfaz usa verde `#39A900`, verde oscuro `#007832`, azul `#00304D` y Work Sans alojada con la aplicación; Calibri como alternativa.
+# Correcciones de registros
+
+Los administradores pueden usar **Eliminar equipo** en la ficha para corregir un registro erróneo. Se exige motivo, versión vigente y confirmación de la placa. La ficha se elimina y la placa queda libre; el equipo y sus movimientos quedan respaldados en la tabla privada `EquipoEliminado`, junto con el autor y la fecha. Este respaldo no se publica ni tiene restauración desde la interfaz. **Dar de baja** sigue conservando la ficha en el inventario.
+
+En **Usuarios y accesos → Editar** se pueden modificar nombre completo, usuario y contraseña. Una contraseña vacía conserva la actual; cambiar contraseña o usuario revoca las sesiones existentes. Las contraseñas se guardan con bcrypt y nunca en la auditoría. Al actualizar una cuenta propia puede ser necesario iniciar sesión de nuevo.

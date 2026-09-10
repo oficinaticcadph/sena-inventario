@@ -73,11 +73,11 @@ export function EquipmentEditor({
       </label>
     );
   };
-  async function action(kind: 'save' | 'excel' | 'delete' | 'note') {
+  async function action(kind: 'save' | 'excel' | 'delete' | 'note' | 'erase') {
     setError('');
     setMessage('');
     if (
-      ((kind === 'save' && !isNew) || kind === 'delete' || kind === 'note') &&
+      ((kind === 'save' && !isNew) || kind === 'delete' || kind === 'note' || kind === 'erase') &&
       reason.trim().length < 4
     ) {
       setError('Escribe un motivo de al menos 4 caracteres para registrar la acción.');
@@ -88,6 +88,17 @@ export function EquipmentEditor({
       !window.confirm(`¿Dar de baja el equipo ${data.placaSena}? Se conservará su historial.`)
     )
       return;
+    let confirmedPlate: string | null = null;
+    if (kind === 'erase') {
+      confirmedPlate = window.prompt(
+        `Eliminar el equipo registrado por error. Su ficha dejará de estar disponible y la placa quedará libre. Se conservará un respaldo de auditoría. Escribe la placa ${initial.placaSena} para confirmar:`,
+      );
+      if (confirmedPlate === null) return;
+      if (confirmedPlate !== initial.placaSena) {
+        setError('La placa de confirmación no coincide.');
+        return;
+      }
+    }
     setBusy(kind);
     try {
       let url = id ? `/api/equipos/${id}` : '/api/equipos',
@@ -113,6 +124,10 @@ export function EquipmentEditor({
         method = 'DELETE';
         payload = { version, detalle: reason };
       }
+      if (kind === 'erase') {
+        method = 'DELETE';
+        payload = { version, detalle: reason, permanente: true, placa: confirmedPlate };
+      }
       if (kind === 'note') {
         url = '/api/movimientos';
         method = 'POST';
@@ -127,7 +142,10 @@ export function EquipmentEditor({
         const result = await response.json();
         throw new Error(result.error || 'No se pudo completar la operación.');
       }
-      if (kind === 'excel') {
+      if (kind === 'erase') {
+        router.push('/');
+        router.refresh();
+      } else if (kind === 'excel') {
         const blob = await response.blob();
         const objectUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -345,7 +363,7 @@ export function EquipmentEditor({
       {tab !== 'historial' && (
         <section className="panel">
           <div className="panel-body">
-            {admin && active && (
+            {admin && (
               <label className="field mb-5">
                 {isNew ? '' : 'Motivo del cambio'}
                 {!isNew && (
@@ -381,6 +399,11 @@ export function EquipmentEditor({
                     <Download size={17} />
                   )}
                   Generar y descargar Excel
+                </button>
+              )}
+              {admin && !isNew && (
+                <button className="button danger" disabled={!!busy} onClick={() => action('erase')}>
+                  Eliminar equipo
                 </button>
               )}
               {admin && active && !isNew && (

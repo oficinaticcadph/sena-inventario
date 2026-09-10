@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import { PrismaClient } from '@prisma/client';
 import { randomBytes } from 'node:crypto';
-import { hash } from 'bcryptjs';
+import { hash, compare } from 'bcryptjs';
 import ExcelJS from 'exceljs';
 import { PDFDocument } from 'pdf-lib';
 process.loadEnvFile('.env');
 if (!process.env.DATABASE_URL?.includes('127.0.0.1:55432'))
   throw new Error('Las pruebas solo se ejecutan sobre la base local.');
 const db = new PrismaClient();
-const base = 'http://127.0.0.1:3000';
+const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:3000';
 const origin = new URL(process.env.NEXTAUTH_URL!).origin;
 const prefix = 'qa_' + randomBytes(5).toString('hex');
 const password = randomBytes(18).toString('base64url');
@@ -252,6 +252,109 @@ try {
   assert.ok((await db.movimiento.count({ where: { equipoId: id } })) >= 4);
   checks++;
   await status(
+    await consulta.request('/api/usuarios', 'PATCH', {
+      accion: 'editar',
+      id: adminUser.id,
+      usuario: adminUser.usuario,
+      nombre: 'Intruso',
+    }),
+    403,
+    'Consulta no edita cuentas',
+  );
+  await status(
+    await admin.request('/api/usuarios', 'PATCH', {
+      accion: 'editar',
+      id: consultUser.id,
+      usuario: consultUser.usuario,
+      nombre: 'Nombre corregido',
+    }),
+    200,
+    'Edita nombre sin contraseña',
+  );
+  assert.ok(
+    await compare(
+      password,
+      (await db.administrador.findUniqueOrThrow({ where: { id: consultUser.id } })).passwordHash,
+    ),
+  );
+  checks++;
+  await status(
+    await admin.request('/api/usuarios', 'PATCH', {
+      accion: 'editar',
+      id: consultUser.id,
+      usuario: consultUser.usuario,
+      nombre: 'Nombre corregido',
+      password: 'corta',
+    }),
+    400,
+    'Rechaza contraseña corta',
+  );
+  await status(
+    await consulta.request(`/api/equipos/${id}`, 'DELETE', {
+      version: 3,
+      detalle: 'Error de registro',
+      permanente: true,
+      placa: data.placaSena,
+    }),
+    403,
+    'Consulta no elimina',
+  );
+  await status(
+    await admin.request(`/api/equipos/${id}`, 'DELETE', {
+      version: 3,
+      detalle: 'Error de registro',
+      permanente: true,
+      placa: 'incorrecta',
+    }),
+    400,
+    'Exige placa correcta',
+  );
+  const saved = await db.equipo.findUniqueOrThrow({ where: { id } });
+  await status(
+    await admin.request(`/api/equipos/${id}`, 'DELETE', {
+      version: 2,
+      detalle: 'Error de registro',
+      permanente: true,
+      placa: saved.placaSena,
+    }),
+    409,
+    'Eliminación rechaza versión vieja',
+  );
+  await status(
+    await admin.request(`/api/equipos/${id}`, 'DELETE', {
+      version: 3,
+      detalle: 'Error de registro',
+      permanente: true,
+      placa: saved.placaSena,
+    }),
+    200,
+    'Elimina registro',
+  );
+  assert.equal(await db.equipo.findUnique({ where: { id } }), null);
+  assert.equal(
+    await db.equipoEliminado.count({ where: { equipoId: id, autorId: adminUser.id } }),
+    1,
+  );
+  checks += 2;
+  await status(
+    await admin.request('/api/usuarios', 'PATCH', {
+      accion: 'editar',
+      id: consultUser.id,
+      usuario: consultUser.usuario,
+      nombre: 'Nombre corregido',
+      password: password + 'a',
+    }),
+    200,
+    'Restablece contraseña',
+  );
+  assert.ok(
+    await compare(
+      password + 'a',
+      (await db.administrador.findUniqueOrThrow({ where: { id: consultUser.id } })).passwordHash,
+    ),
+  );
+  checks++;
+  await status(
     await admin.request('/api/usuarios', 'PATCH', { id: consultUser.id, activo: false }),
     200,
     'Desactiva usuario',
@@ -273,6 +376,9 @@ try {
     `${checks} verificaciones de integración correctas: autenticación, roles, PII, Excel, auditoría, concurrencia y baja.`,
   );
 } finally {
+  await db.equipoEliminado.deleteMany({
+    where: { placaSena: { startsWith: prefix.toUpperCase() } },
+  });
   const equipment = await db.equipo.findMany({
     where: { placaSena: { startsWith: prefix.toUpperCase() } },
     select: { id: true, cuentadanteId: true },
