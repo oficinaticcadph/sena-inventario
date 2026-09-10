@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import {
   Monitor,
   Users,
@@ -26,6 +27,42 @@ export default async function Home({
     group = params.grupo || '',
     status = params.estado || 'activos';
   const page = Math.max(1, Math.min(10000, Math.floor(Number(params.p) || 1)));
+  if (!user) {
+    if (q) {
+      const equipo = await db.equipo.findFirst({
+        where: { placaSena: { equals: q, mode: 'insensitive' }, activo: true },
+        select: { id: true },
+      });
+      if (equipo) redirect(`/equipos/${equipo.id}`);
+    }
+    return (
+      <Shell user={null}>
+        <section className="panel">
+          <div className="panel-head">
+            <div>
+              <h1>Buscar equipo</h1>
+              <p>Escribe la Placa SENA completa para consultar la ficha y el historial del equipo.</p>
+            </div>
+          </div>
+          <div className="panel-body">
+            <form action="/" method="get" className="search-row">
+              <div className="search-box">
+                <label htmlFor="public-plate" className="sr-only">Placa SENA</label>
+                <input id="public-plate" className="input" name="q" defaultValue={q}
+                  placeholder="Escribe la Placa SENA" autoComplete="off" maxLength={80} required />
+              </div>
+              <button className="button" type="submit">Buscar</button>
+            </form>
+            {q && (
+              <p role="status" className="mt-4">
+                No se encontró un equipo activo con esa placa. Revisa el número e intenta de nuevo.
+              </p>
+            )}
+          </div>
+        </section>
+      </Shell>
+    );
+  }
   const where: Prisma.EquipoWhereInput = {
     ...(q ? { placaSena: { contains: q, mode: 'insensitive' } } : {}),
     ...(group ? { grupo: group } : {}),
