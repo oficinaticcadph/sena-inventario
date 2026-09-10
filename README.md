@@ -96,7 +96,7 @@ Los secretos reales van en `.env` o en Vercel, nunca en `.env.example`.
 
 ## Funciones y permisos
 
-Cualquier visitante puede buscar por placa completa y ver los datos técnicos del equipo activo y su historial como lista, sin iniciar sesión. La página inicial pública solo presenta el campo de placa y el botón **Buscar**, sin listado de equipos. La opción **Entrar como administrador** aparece debajo de la consulta. La vista pública omite responsables, contactos, autoría y notas internas; muestra el tipo y fecha de cada movimiento. Las cuentas autorizadas conservan acceso al listado con filtros, a la ficha según sus permisos y a la descarga de Excel.
+Cualquier visitante puede buscar por placa completa y ver los datos técnicos del equipo activo y su historial como lista, sin iniciar sesión. La página inicial pública solo presenta el campo de placa y el botón **Buscar**, sin listado de equipos. La opción **Entrar como administrador** aparece debajo de la consulta. La ficha pública muestra el nombre del cuentadante actual (o «Sin asignar»). Omite contactos, autoría y notas internas; muestra el tipo y fecha de cada movimiento. Las cuentas autorizadas conservan acceso al listado con filtros, a la ficha según sus permisos y a la descarga de Excel.
 
 **Admin:** crea y edita equipos, reasigna cuentadantes, registra observaciones, realiza bajas y elimina registros erróneos con respaldo de auditoría. Crea, activa, desactiva y edita cuentas admin/consulta, y consulta la bitácora global. No puede desactivar su propia cuenta y debe quedar al menos un administrador activo.
 

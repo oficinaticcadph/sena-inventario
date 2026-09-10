@@ -134,7 +134,10 @@ try {
   const publicPage = await anon.request(`/equipos/${id}`);
   await status(publicPage, 200, 'Ficha pública sin sesión');
   const publicHtml = await publicPage.text();
-  for (const secret of ['Responsable', '3001234567', '1234567890', adminUser.nombre]) {
+  assert.ok(publicHtml.includes('Cuentadante'));
+  assert.ok(publicHtml.includes('Responsable 1234567890'));
+  checks += 2;
+  for (const secret of ['3001234567', adminUser.nombre]) {
     assert.ok(!publicHtml.includes(secret), 'La vista pública no entrega datos personales');
     checks++;
   }

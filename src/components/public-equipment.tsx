@@ -15,7 +15,7 @@ const movementLabels: Record<string, string> = {
 };
 
 export async function PublicEquipment({ id }: { id: string }) {
-  // Lista explícita: no consultar responsables, contacto, autoría, notas ni diferencias privadas.
+  // Publicar solo el nombre del cuentadante; excluir contacto, autoría y notas privadas.
   const equipo = await db.equipo.findUnique({
     where: { id },
     select: {
@@ -30,6 +30,7 @@ export async function PublicEquipment({ id }: { id: string }) {
       ram: true,
       grupo: true,
       activo: true,
+      cuentadante: { select: { nombre: true } },
       movimientos: {
         select: { id: true, tipo: true, createdAt: true },
         orderBy: { createdAt: 'desc' },
@@ -39,6 +40,7 @@ export async function PublicEquipment({ id }: { id: string }) {
   if (!equipo) notFound();
   const fields = {
     'Placa SENA': equipo.placaSena,
+    Cuentadante: equipo.cuentadante?.nombre || 'Sin asignar',
     Componente: equipo.componente,
     Marca: equipo.marca,
     Modelo: equipo.modelo,
@@ -125,8 +127,7 @@ export async function PublicEquipment({ id }: { id: string }) {
             <p className="muted">Este equipo aún no tiene movimientos registrados.</p>
           )}
           <p className="muted text-sm mt-5">
-            Los nombres de responsables, los contactos y las notas internas requieren una cuenta
-            autorizada.
+            Los contactos y las notas internas requieren una cuenta autorizada.
           </p>
         </div>
       </section>
