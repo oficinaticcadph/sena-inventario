@@ -1,11 +1,14 @@
 # Hoja de Vida Equipos SENA
 
-Aplicación Next.js App Router, TypeScript, Tailwind CSS, Prisma y Postgres, con autenticación NextAuth y generación de Excel mediante ExcelJS.
+Aplicación para consultar y administrar el inventario de equipos SENA, registrar movimientos y descargar hojas de vida en PDF o Excel. Desarrollada con Next.js App Router, TypeScript, Tailwind CSS, Prisma y Postgres, con autenticación NextAuth, ExcelJS y pdf-lib.
+
+**Sitio:** [sena-inventario-topaz.vercel.app](https://sena-inventario-topaz.vercel.app) · **Código:** [oficinaticcadph/sena-inventario](https://github.com/oficinaticcadph/sena-inventario)
 
 ## Estado de la entrega
 
-- Aplicación funcional y verificada localmente; aún no publicada en Vercel.
-- Postgres persistente en `private/postgres`, accesible solo desde este computador, puerto `55432`.
+- Aplicación publicada en Vercel, conectada a Postgres gestionado en Neon.
+- La base de producción conserva el inventario, los usuarios y el historial aunque se cierre el navegador o se actualice la aplicación.
+- La instalación local utiliza una base independiente en `private/postgres`, puerto `55432`. Sus cambios no se sincronizan automáticamente con Neon.
 - **495 filas de origen**: 142 Funcionarios, 236 FORMACION y 117 ELECTRONICOS. Encabezados en fila 4, **64 columnas hasta BL**.
 - **466 equipos de placa única** importados. **29 filas de placas repetidas** conservadas por separado en Postgres, visibles en `/admin/incidencias`. No se eligió arbitrariamente cuál fila debía prevalecer.
 - Plantilla oficial limpia incluida: 100 combinaciones, formatos, bordes, logo y cuadros de clasificación. Sin datos, marca de clasificación ni firma manuscrita del ejemplo.
@@ -13,7 +16,11 @@ Aplicación Next.js App Router, TypeScript, Tailwind CSS, Prisma y Postgres, con
 
 ## Acceder a la instalación entregada
 
-Abre **http://localhost:3000** mientras los procesos locales estén activos. Usuario inicial: `jucsendoya`. La contraseña aleatoria está en **`private/acceso-inicial.txt`**, excluido de Git y Vercel.
+Para consultar el sistema publicado, abre [la aplicación](https://sena-inventario-topaz.vercel.app). Escribe una **Placa SENA completa** y pulsa **Buscar**. La página pública no muestra listado, filtros ni sugerencias; una coincidencia activa abre directamente la ficha. Si no existe, muestra un aviso.
+
+Desde la ficha puedes consultar los datos técnicos, el historial público y descargar el PDF. La opción **Entrar como administrador** aparece debajo del contenido. Utiliza una cuenta autorizada para administrar equipos y usuarios.
+
+Para trabajar localmente, abre **http://localhost:3000** mientras los procesos locales estén activos. Las credenciales iniciales de la instalación entregada se guardaron en `private/acceso-inicial.txt`, excluido de Git y Vercel. Ese archivo no se actualiza al cambiar una contraseña desde la aplicación.
 
 Para reiniciar, abre dos terminales en esta carpeta:
 
@@ -89,11 +96,11 @@ Los secretos reales van en `.env` o en Vercel, nunca en `.env.example`.
 
 ## Funciones y permisos
 
-Cualquier visitante puede consultar el inventario, buscar por placa y ver los datos técnicos del equipo y su historial como lista, sin iniciar sesión. La opción **Entrar como administrador** aparece debajo de la consulta. La vista pública omite responsables, contactos, autoría y notas internas; muestra el tipo y fecha de cada movimiento. Las cuentas autorizadas conservan acceso a la ficha completa, edición según rol y descarga de Excel.
+Cualquier visitante puede buscar por placa completa y ver los datos técnicos del equipo activo y su historial como lista, sin iniciar sesión. La página inicial pública solo presenta el campo de placa y el botón **Buscar**, sin listado de equipos. La opción **Entrar como administrador** aparece debajo de la consulta. La vista pública omite responsables, contactos, autoría y notas internas; muestra el tipo y fecha de cada movimiento. Las cuentas autorizadas conservan acceso al listado con filtros, a la ficha según sus permisos y a la descarga de Excel.
 
-**Admin:** crea y edita equipos, reasigna cuentadantes, registra observaciones y realiza bajas lógicas. Administra cuentas admin/consulta y consulta la bitácora global. No puede desactivar su propia cuenta y debe quedar al menos un administrador activo.
+**Admin:** crea y edita equipos, reasigna cuentadantes, registra observaciones, realiza bajas y elimina registros erróneos con respaldo de auditoría. Crea, activa, desactiva y edita cuentas admin/consulta, y consulta la bitácora global. No puede desactivar su propia cuenta y debe quedar al menos un administrador activo.
 
-**Consulta:** consulta fichas e historial y genera reportes. Puede completar campos manuales o datos mapeados vacíos únicamente para la descarga, sin modificar el inventario. Los datos ya presentes requieren edición y guardado por un administrador.
+**Consulta con cuenta:** consulta fichas e historial y genera reportes. Puede completar campos manuales o datos mapeados vacíos únicamente para la descarga, sin modificar el inventario. Los datos ya presentes requieren edición y guardado por un administrador. Este rol autenticado es distinto del visitante público, que descarga únicamente PDF.
 
 Ambos roles descargan `HOJA_DE_VIDA_[PLACA].xlsx`. El sistema registra la generación automáticamente; consulta no puede crear movimientos manuales. La fecha usa `America/Bogota` y el técnico se obtiene de la cuenta autenticada. No se fabrican firmas.
 
@@ -130,6 +137,8 @@ ExcelJS edita las celdas y `src/lib/ooxml.ts` restaura los dibujos DrawingML que
 
 ## Desplegar en Vercel con Postgres gestionado
 
+La instalación actual ya utiliza GitHub → Vercel y una base Neon. Para mantenerla, consulta **Actualizar la aplicación publicada** más abajo. Los siguientes pasos son para una instalación nueva.
+
 1. Crea un proyecto en [Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres) o [Neon](https://neon.com/docs/connect/connect-from-any-app). Elige región y guarda las credenciales de forma privada. Prisma usa conexión Postgres, no claves públicas/anon.
 2. Obtén una conexión con pool para `DATABASE_URL` y una directa o session pooler para `DIRECT_URL`. Sigue las indicaciones TLS del proveedor, normalmente `sslmode=require`.
 3. Configura esas conexiones en un entorno local separado. Ejecuta `db:generate`, `db:migrate`, `admin:setup` y `db:seed` contra esa base. La semilla se ejecuta una vez, **no en cada build**. Para trasladar ediciones de la base local utiliza `pg_dump`/`pg_restore` a un destino nuevo; volver a sembrar no migra las ediciones.
@@ -141,6 +150,19 @@ ExcelJS edita las celdas y `src/lib/ooxml.ts` restaura los dibujos DrawingML que
 
 Referencias: [Prisma 6 y Postgres](https://www.prisma.io/docs/orm/v6/overview/databases/postgresql), [NextAuth](https://next-auth.js.org/configuration/options), [Next.js Proxy](https://nextjs.org/docs/app/api-reference/file-conventions/proxy).
 
+## Actualizar la aplicación publicada
+
+1. Modifica el código y comprueba los cambios localmente con `npm.cmd run typecheck` y `npm.cmd run build`. Ejecuta las pruebas correspondientes si cambian comportamientos o permisos.
+2. Si cambió el esquema, crea una migración versionada y aplícala en Neon con `npm.cmd run db:migrate` desde un entorno privado configurado para producción. El build no aplica migraciones automáticamente. No reemplaces la configuración de la base local por accidente.
+3. Haz commit y push a `main`. La integración de GitHub inicia el despliegue en Vercel.
+4. En **Vercel → Deployments**, comprueba que la nueva versión alcance **Ready** y verifica consulta pública, acceso de administrador y las funciones modificadas.
+
+Actualizar código no vuelve a importar el Excel ni borra el inventario. Los equipos agregados desde la web publicada se guardan en Neon; los agregados desde la instalación local se guardan en la base indicada en su `.env`.
+
+En producción deben estar disponibles `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET` y `NEXTAUTH_URL`. Para esta instalación, `NEXTAUTH_URL` es `https://sena-inventario-topaz.vercel.app`, sin comillas en el panel de Vercel. Las variables `SEED_ADMIN_*`, `INVENTORY_PATH` y `TEMPLATE_SOURCE_PATH` se usan en los scripts locales, no en la aplicación publicada. Después de modificar variables en Vercel, realiza un **Redeploy** para que la nueva versión las reciba.
+
+Si los registros muestran `[next-auth][error][NO_SECRET]`, revisa que `NEXTAUTH_SECRET` tenga un valor y esté asignado al entorno **Production**, y vuelve a desplegar. **Ready** confirma el despliegue, pero también hay que abrir la página y revisar **Logs** si aparece un error de ejecución.
+
 ## Seguridad
 
 - Hash bcrypt, coste 12, y límites por bytes para evitar truncamiento de contraseñas.
@@ -151,7 +173,7 @@ Referencias: [Prisma 6 y Postgres](https://www.prisma.io/docs/orm/v6/overview/da
 - Validación de campos, límites de solicitud y consultas parametrizadas con Prisma.
 - Datos protegidos sin caché compartida, sin indexación ni inventarios públicos.
 - Contactos y secuencias numéricas sensibles enmascarados para consulta. El servidor no entrega el JSON original completo a ese rol.
-- Auditoría, transacciones, control de versiones y bajas lógicas.
+- Auditoría, transacciones, control de versiones, bajas y eliminación con respaldo privado. Cambiar usuario de acceso o contraseña también revoca las sesiones existentes.
 
 ## Verificación
 
@@ -163,7 +185,7 @@ npm.cmd run build
 node node_modules/tsx/dist/cli.mjs scripts/test-integration.ts
 ```
 
-Las pruebas de integración usan solo `127.0.0.1:55432`, crean sus propias cuentas/equipos y eliminan esos registros al terminar. Cubren login real, accesos sin sesión, roles, origen, PII, Excel, autoría, edición temporal, reasignación, concurrencia, baja y revocación.
+Las pruebas de integración usan solo `127.0.0.1:55432`, crean sus propias cuentas/equipos y eliminan esos registros al terminar. Cubren login real, accesos sin sesión, roles, origen, PII, PDF, Excel, autoría, edición temporal, reasignación, concurrencia, baja, eliminación con confirmación y respaldo, edición de cuentas, contraseñas y revocación. La última ejecución completó 65 verificaciones. Para probar una aplicación local en otro puerto, configura `TEST_BASE_URL`, por ejemplo `http://127.0.0.1:3001`.
 
 Las pruebas de Excel comprueban el mapeo, fecha colombiana, ausencia de datos/firma del ejemplo, logo, combinaciones, bordes, tipografía, tamaños y configuración de página. Se renderizó una muestra sintética para revisar el formato. El renderizador auxiliar depende de herramientas del entorno de elaboración; no es necesario para operar la aplicación.
 
@@ -178,7 +200,7 @@ Las pruebas de Excel comprueban el mapeo, fecha colombiana, ausencia de datos/fi
 - `private/`: datos y credenciales locales, **nunca publicar**.
 
 Los logos suministrados se usan sin recolorearlos. La interfaz usa verde `#39A900`, verde oscuro `#007832`, azul `#00304D` y Work Sans alojada con la aplicación; Calibri como alternativa.
-# Correcciones de registros
+## Correcciones de registros
 
 Los administradores pueden usar **Eliminar equipo** en la ficha para corregir un registro erróneo. Se exige motivo, versión vigente y confirmación de la placa. La ficha se elimina y la placa queda libre; el equipo y sus movimientos quedan respaldados en la tabla privada `EquipoEliminado`, junto con el autor y la fecha. Este respaldo no se publica ni tiene restauración desde la interfaz. **Dar de baja** sigue conservando la ficha en el inventario.
 
