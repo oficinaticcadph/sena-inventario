@@ -101,7 +101,7 @@ export function UserManager({
                 </small>
               </label>
             </div>
-            <div className="flex gap-3 mt-6">
+            <div className="user-edit-actions flex gap-3 mt-6">
               <button className="button" disabled={busy}>
                 Guardar cambios
               </button>

@@ -96,6 +96,10 @@ Los secretos reales van en `.env` o en Vercel, nunca en `.env.example`.
 
 ## Funciones y permisos
 
+### Uso en celulares, tabletas y monitores
+
+La interfaz adapta encabezados, botones, filtros y formularios al ancho de pantalla. En celulares, los formularios se apilan y los botones principales ocupan el ancho disponible. La navegación y las pestañas se pueden deslizar horizontalmente; las tablas conservan sus columnas y se desplazan dentro de su propia sección. En monitores grandes, el contenido mantiene un ancho máximo para facilitar la lectura. Se conservan los colores, logos y secciones del diseño institucional.
+
 Cualquier visitante puede buscar por placa completa y ver los datos técnicos del equipo activo y su historial como lista, sin iniciar sesión. La página inicial pública solo presenta el campo de placa y el botón **Buscar**, sin listado de equipos. La opción **Entrar como administrador** aparece debajo de la consulta. La ficha pública muestra el nombre del cuentadante actual (o «Sin asignar»). Omite contactos, autoría y notas internas; muestra el tipo y fecha de cada movimiento. Las cuentas autorizadas conservan acceso al listado con filtros, a la ficha según sus permisos y a la descarga de Excel.
 
 **Admin:** crea y edita equipos, reasigna cuentadantes, registra observaciones, realiza bajas y elimina registros erróneos con respaldo de auditoría. Crea, activa, desactiva y edita cuentas admin/consulta, y consulta la bitácora global. No puede desactivar su propia cuenta y debe quedar al menos un administrador activo.

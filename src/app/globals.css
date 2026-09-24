@@ -759,11 +759,12 @@ pre {
 }
 @media (min-width: 1600px) {
   .main {
-    margin: auto;
+    margin-inline: auto;
     padding-left: 55px;
     padding-right: 55px;
   }
 }
+
 @media (max-width: 1100px) {
   .sidebar {
     width: 190px;
@@ -944,5 +945,225 @@ pre {
   }
   .record-heading .device-icon {
     display: none;
+  }
+}
+
+/* Flexible content without hiding horizontal overflow from the whole page. */
+.brand,
+.brand-title,
+.account,
+.identity,
+.search-box,
+.record-heading,
+.page-heading > *,
+.panel-head > *,
+.panel-body > *,
+.forms-grid > *,
+.flow-grid > *,
+.context-grid > * {
+  min-width: 0;
+}
+.brand img,
+.avatar,
+.icon-button,
+.device-icon,
+.stat-icon,
+.button svg,
+.nav-item svg,
+.info-strip svg,
+.login-foot svg {
+  flex-shrink: 0;
+}
+h1,
+h2,
+h3,
+p,
+.identity,
+.record-meta,
+.error,
+.success,
+.badge {
+  overflow-wrap: anywhere;
+}
+.button {
+  white-space: normal;
+  text-align: center;
+  min-height: 44px;
+  max-width: 100%;
+}
+.icon-button,
+.pagination a {
+  min-height: 44px;
+  min-width: 44px;
+  align-items: center;
+  justify-content: center;
+}
+.pagination a {
+  display: inline-flex;
+}
+.panel-head,
+.table-footer,
+.pagination,
+.breadcrumbs {
+  flex-wrap: wrap;
+}
+.search-row {
+  flex-wrap: wrap;
+}
+.search-box {
+  flex-basis: 220px;
+}
+.table-wrap {
+  max-width: 100%;
+  position: relative;
+  overscroll-behavior-x: contain;
+}
+.stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.context-grid,
+.flow-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.login {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.login-brand {
+  gap: 32px;
+  padding: clamp(24px, 4vw, 64px);
+}
+.login-brand h1 {
+  font-size: clamp(1.9rem, 3.4vw, 3rem);
+}
+.login-form {
+  min-width: 0;
+  padding: clamp(24px, 3vw, 45px);
+}
+.user-edit-actions {
+  flex-wrap: wrap;
+}
+#public-plate {
+  padding-left: 12px;
+}
+
+@media (max-width: 1100px) {
+  .stats,
+  .context-grid,
+  .flow-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .search-row .search-box {
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 760px) {
+  .header {
+    height: auto;
+    min-height: 83px;
+    padding-block: 12px;
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+  .brand {
+    flex: 1 1 200px;
+  }
+  .brand-title {
+    max-width: none;
+  }
+  .sidebar .nav-item {
+    flex: 0 0 auto;
+    min-height: 44px;
+  }
+  .workspace {
+    min-height: calc(100svh - 83px);
+  }
+  .main {
+    padding: 24px 16px;
+  }
+  .panel-head {
+    align-items: flex-start;
+  }
+  .search-row {
+    align-items: stretch;
+  }
+  .search-row > .field,
+  .search-row > .search-box {
+    flex: 1 1 100%;
+  }
+  .search-row > .button {
+    width: 100%;
+  }
+  .field input,
+  .field select,
+  .field textarea,
+  .input {
+    font-size: 16px;
+  }
+  .actions > .button {
+    flex: 1 1 220px;
+    margin-left: 0;
+  }
+  .panel-body > .button {
+    width: 100%;
+  }
+  .table-footer {
+    align-items: flex-start;
+  }
+  .pagination {
+    gap: 8px;
+  }
+  .flow-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .login {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 100svh;
+  }
+  .login-brand {
+    gap: 20px;
+  }
+  .login-form {
+    padding: 24px 20px 36px;
+  }
+  .login-card > .button {
+    margin-top: 0;
+  }
+  .suggestions a {
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 420px) {
+  .main {
+    padding-inline: 12px;
+  }
+  .panel-head,
+  .panel-body {
+    padding: 16px;
+  }
+  .context-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .stat {
+    padding: 12px;
+  }
+  .stat-top {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .user-edit-actions .button {
+    width: 100%;
+  }
+  .login-brand h1 {
+    font-size: 1.7rem;
+  }
+  .tabs {
+    padding-inline: 16px;
+    gap: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
   }
 }
