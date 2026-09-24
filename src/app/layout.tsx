@@ -5,8 +5,8 @@ import '@fontsource/work-sans/600.css';
 import '@fontsource/work-sans/700.css';
 import './globals.css';
 export const metadata: Metadata = {
-  title: 'Hoja de Vida Equipos SENA',
-  description: 'Inventario institucional y hojas de vida de equipos SENA',
+  title: 'Hoja de Vida Equipos SENA · CADPH',
+  description: 'Inventario y hojas de vida de equipos del Centro Agroempresarial y Desarrollo Pecuario del Huila (CADPH) — SENA.',
   robots: { index: false, follow: false },
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {

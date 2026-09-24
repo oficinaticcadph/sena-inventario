@@ -36,7 +36,7 @@ export function Shell({
         <Link href="/" className="brand">
           <img src="/sena-principal.png" alt="SENA" />
           <div className="brand-title">
-            Hoja de Vida Equipos SENA<small>Gestión del inventario institucional</small>
+            Hoja de Vida Equipos SENA · CADPH<small>Gestión del inventario institucional</small>
           </div>
         </Link>
         {user ? (
@@ -78,12 +78,12 @@ export function Shell({
             <br />
             Servicio Nacional de Aprendizaje
             <br />
-            <span className="text-[#007832]">SENA · 2026</span>
+            <span className="text-[#007832]">SENA · CADPH · Huila</span>
           </div>
         </aside>
         <main className="main">
           <div className="breadcrumbs">
-            <span>SENA</span>
+            <span>SENA · CADPH</span>
             <ChevronRight size={13} />
             <span>
               {pathname.startsWith('/admin') ? 'Administración' : 'Inventario de equipos'}
@@ -106,8 +106,11 @@ export function Shell({
               </div>
             </section>
           )}
-          <footer className="footer">
-            <span>Servicio Nacional de Aprendizaje SENA</span>
+          <footer className="footer flex-wrap">
+            <div className="min-w-0">
+              <span>Servicio Nacional de Aprendizaje SENA</span>
+              <span className="block mt-1">Centro Agroempresarial y Desarrollo Pecuario del Huila (CADPH)</span>
+            </div>
             <span>Formato GTI-F-132 · Versión 06</span>
           </footer>
         </main>

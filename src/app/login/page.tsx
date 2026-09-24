@@ -21,6 +21,8 @@ export default function LoginPage() {
         <small>
           Servicio Nacional de Aprendizaje
           <br />
+          Centro Agroempresarial y Desarrollo Pecuario del Huila (CADPH)
+          <br />
           Gestión de Tecnologías de la Información
         </small>
       </section>

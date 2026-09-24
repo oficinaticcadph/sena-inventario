@@ -30,7 +30,7 @@ export function LoginForm() {
         }
       }}
     >
-      <div className="eyebrow">Acceso institucional</div>
+      <div className="eyebrow">Acceso institucional · CADPH</div>
       <h2>Bienvenido de nuevo</h2>
       <p className="muted">
         Ingresa para gestionar los equipos, editar el software y generar sus hojas de vida.
