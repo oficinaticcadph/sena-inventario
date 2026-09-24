@@ -185,7 +185,7 @@ npm.cmd run build
 node node_modules/tsx/dist/cli.mjs scripts/test-integration.ts
 ```
 
-Las pruebas de integración usan solo `127.0.0.1:55432`, crean sus propias cuentas/equipos y eliminan esos registros al terminar. Cubren login real, accesos sin sesión, roles, origen, PII, PDF, Excel, autoría, edición temporal, reasignación, concurrencia, baja, eliminación con confirmación y respaldo, edición de cuentas, contraseñas y revocación. La última ejecución completó 65 verificaciones. Para probar una aplicación local en otro puerto, configura `TEST_BASE_URL`, por ejemplo `http://127.0.0.1:3001`.
+Las pruebas de integración usan solo `127.0.0.1:55432`, crean sus propias cuentas/equipos y eliminan esos registros al terminar. Cubren login real, accesos sin sesión, roles, origen, PII, PDF, Excel, autoría, edición temporal, reasignación, concurrencia, baja, eliminación con confirmación y respaldo, edición de cuentas, contraseñas y revocación. La última ejecución completó 72 verificaciones, incluidas las restricciones del administrador principal. Para probar una aplicación local en otro puerto, configura `TEST_BASE_URL`, por ejemplo `http://127.0.0.1:3001`.
 
 Las pruebas de Excel comprueban el mapeo, fecha colombiana, ausencia de datos/firma del ejemplo, logo, combinaciones, bordes, tipografía, tamaños y configuración de página. Se renderizó una muestra sintética para revisar el formato. El renderizador auxiliar depende de herramientas del entorno de elaboración; no es necesario para operar la aplicación.
 
@@ -201,6 +201,12 @@ Las pruebas de Excel comprueban el mapeo, fecha colombiana, ausencia de datos/fi
 
 Los logos suministrados se usan sin recolorearlos. La interfaz usa verde `#39A900`, verde oscuro `#007832`, azul `#00304D` y Work Sans alojada con la aplicación; Calibri como alternativa.
 ## Correcciones de registros
+
+### Administrador principal
+
+La cuenta `jucsendoya` es el administrador principal del proyecto. Aparece identificada en **Usuarios y accesos**. Otros administradores no pueden editar su nombre, usuario o contraseña, ni desactivarla. Solo el titular puede actualizar su nombre y contraseña desde su propia sesión; su usuario de acceso queda fijo para conservar esta protección. El nombre `jucsendoya` está reservado y no puede asignarse a otra cuenta desde el panel. Las API validan estas reglas aunque se envíe una solicitud manual sin usar los botones. Los demás administradores conservan sus permisos sobre equipos y cuentas ordinarias.
+
+La protección corresponde a la aplicación; el acceso directo a la base de datos o al repositorio debe mantenerse restringido a los responsables del proyecto.
 
 Los administradores pueden usar **Eliminar equipo** en la ficha para corregir un registro erróneo. Se exige motivo, versión vigente y confirmación de la placa. La ficha se elimina y la placa queda libre; el equipo y sus movimientos quedan respaldados en la tabla privada `EquipoEliminado`, junto con el autor y la fecha. Este respaldo no se publica ni tiene restauración desde la interfaz. **Dar de baja** sigue conservando la ficha en el inventario.
 

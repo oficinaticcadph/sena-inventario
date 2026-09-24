@@ -3,11 +3,14 @@ import { hash } from 'bcryptjs';
 import { apiError, requireUser, checkOrigin, body, HttpError } from '@/lib/access';
 import { usuarioSchema, passwordSchema } from '@/lib/validation';
 import { z } from 'zod';
+import { isPrincipal, principalEditError } from '@/lib/principal';
 export async function POST(req: Request) {
   try {
     checkOrigin(req);
     const actor = await requireUser(true);
     const { password, ...data } = usuarioSchema.parse(await body(req));
+    if (isPrincipal(data.usuario))
+      throw new HttpError(403, 'El administrador principal no se puede crear desde el panel.');
     const passwordHash = await hash(password, 12);
     await db.$transaction(async (tx) => {
       const user = await tx.administrador.create({ data: { ...data, passwordHash } });
@@ -45,6 +48,8 @@ export async function PATCH(req: Request) {
         async (tx) => {
           const previous = await tx.administrador.findUnique({ where: { id: data.id } });
           if (!previous) throw new HttpError(404, 'Usuario no encontrado.');
+          const protection = principalEditError(actor.id, previous, data.usuario);
+          if (protection) throw new HttpError(403, protection);
           await tx.administrador.update({
             where: { id: data.id },
             data: {
@@ -74,6 +79,11 @@ export async function PATCH(req: Request) {
       async (tx) => {
         const user = await tx.administrador.findUnique({ where: { id } });
         if (!user) throw new HttpError(404, 'Usuario no encontrado.');
+        if (isPrincipal(user.usuario))
+          throw new HttpError(
+            403,
+            'El administrador principal no puede ser desactivado ni modificado por otra cuenta.',
+          );
         if (
           !activo &&
           user.rol === 'admin' &&

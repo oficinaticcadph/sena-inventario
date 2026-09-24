@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
+import { isPrincipal } from '@/lib/principal';
 export function UserManager({
   users,
   currentId,
@@ -69,6 +70,7 @@ export function UserManager({
                 <input
                   name="usuario"
                   defaultValue={editing.usuario}
+                  readOnly={isPrincipal(editing.usuario)}
                   required
                   pattern="[a-z0-9._\-]{3,80}"
                   maxLength={80}
@@ -136,21 +138,35 @@ export function UserManager({
                 <tr key={u.id}>
                   <td className="plate">{u.usuario}</td>
                   <td>{u.nombre}</td>
-                  <td>{u.rol === 'admin' ? 'Administrador' : 'Consulta'}</td>
+                  <td>
+                    {isPrincipal(u.usuario)
+                      ? 'Administrador principal'
+                      : u.rol === 'admin'
+                        ? 'Administrador'
+                        : 'Consulta'}
+                  </td>
                   <td>
                     <span className={`badge ${u.activo ? '' : 'gray'}`}>
                       {u.activo ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
                   <td>
-                    <button
-                      className="button secondary"
-                      disabled={busy}
-                      onClick={() => setEditing(u)}
-                    >
-                      Editar
-                    </button>{' '}
-                    {u.id !== currentId ? (
+                    {(!isPrincipal(u.usuario) || u.id === currentId) && (
+                      <button
+                        className="button secondary"
+                        disabled={busy}
+                        onClick={() => setEditing(u)}
+                      >
+                        Editar
+                      </button>
+                    )}{' '}
+                    {isPrincipal(u.usuario) ? (
+                      <small>
+                        {u.id === currentId
+                          ? 'Tu cuenta principal protegida'
+                          : 'Cuenta principal protegida'}
+                      </small>
+                    ) : u.id !== currentId ? (
                       <button
                         disabled={busy}
                         className="button secondary"

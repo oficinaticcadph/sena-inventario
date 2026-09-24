@@ -93,6 +93,72 @@ try {
   checks++;
   await status(await anon.request('/admin'), 307, 'Panel redirige sin sesión');
   await Promise.all([admin.login(adminUser.usuario), consulta.login(consultUser.usuario)]);
+  // La cuenta real solo se lee: las solicitudes prohibidas deben dejarla intacta.
+  const principal = await db.administrador.findUnique({ where: { usuario: 'jucsendoya' } });
+  assert.ok(principal, 'La instalación local tiene la cuenta principal');
+  await status(
+    await admin.request('/api/usuarios', 'PATCH', { id: principal.id, activo: false }),
+    403,
+    'Otro admin no desactiva al principal',
+  );
+  await status(
+    await admin.request('/api/usuarios', 'PATCH', {
+      accion: 'editar',
+      id: principal.id,
+      usuario: principal.usuario,
+      nombre: 'Intento bloqueado',
+      password,
+    }),
+    403,
+    'Otro admin no cambia nombre ni contraseña del principal',
+  );
+  await status(
+    await admin.request('/api/usuarios', 'PATCH', {
+      accion: 'editar',
+      id: principal.id,
+      usuario: prefix + '_renombrado',
+      nombre: principal.nombre,
+    }),
+    403,
+    'Otro admin no renombra al principal',
+  );
+  await status(
+    await admin.request('/api/usuarios', 'PATCH', {
+      accion: 'editar',
+      id: adminUser.id,
+      usuario: 'jucsendoya',
+      nombre: adminUser.nombre,
+    }),
+    403,
+    'No permite apropiarse del usuario reservado',
+  );
+  await status(
+    await admin.request('/api/usuarios', 'POST', {
+      usuario: 'JUCSENDOYA',
+      nombre: 'Intento bloqueado',
+      password,
+      rol: 'admin',
+    }),
+    403,
+    'No crea un segundo principal',
+  );
+  await status(
+    await admin.request('/api/usuarios', 'PATCH', {
+      accion: 'editar',
+      id: principal.id,
+      usuario: principal.usuario,
+      nombre: principal.nombre,
+      rol: 'consulta',
+    }),
+    400,
+    'Rechaza cambio de rol inyectado',
+  );
+  assert.deepEqual(
+    await db.administrador.findUnique({ where: { id: principal.id } }),
+    principal,
+    'Cuenta principal intacta',
+  );
+  checks++;
   await status(
     await consulta.request('/api/usuarios', 'POST', {}),
     403,
