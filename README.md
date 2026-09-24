@@ -112,7 +112,7 @@ Los cambios de inventario y la auditoría se guardan en la misma transacción. U
 
 La ficha pública incluye **Descargar hoja de vida en PDF**. `GET /api/equipos/[id]/pdf` entrega `HOJA_DE_VIDA_[PLACA].pdf` sin iniciar sesión. El archivo se genera en el servidor con pdf-lib desde la estructura del formato limpio GTI-F-132, conserva el logo y los bloques del formulario, y utiliza tamaño A3 para mantenerlos legibles en una página. Si un dato extenso no cabe, su contenido completo pasa a un anexo.
 
-El PDF solo recibe una lista explícita de campos técnicos y de software. Omite responsables, contactos, jefe, notas internas, hostname, dominio y firmas, independientemente de si quien lo descarga tiene sesión. No contiene un Excel adjunto ni admite cambios enviados por el visitante. El endpoint de Excel mantiene la autenticación obligatoria. Las descargas anónimas no crean movimientos atribuidos a un administrador.
+El PDF recibe una lista explícita de campos técnicos, software y el nombre del cuentadante actual en «Nombre de Usuario». Si no hay cuentadante, muestra «Sin asignar». Omite contactos, jefe, notas internas, hostname, dominio y firmas, independientemente de si quien lo descarga tiene sesión. No contiene un Excel adjunto ni admite cambios enviados por el visitante. El endpoint de Excel mantiene la autenticación obligatoria. Las descargas anónimas no crean movimientos atribuidos a un administrador.
 
 `next.config.ts` incluye la plantilla también en la función PDF para el despliegue en Vercel. No requiere Excel, LibreOffice ni un servicio de conversión externo.
 

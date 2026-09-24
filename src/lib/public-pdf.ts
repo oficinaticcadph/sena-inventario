@@ -16,11 +16,13 @@ export const publicPdfSelect = {
   ram: true,
   grupo: true,
   ficha: true,
+  cuentadante: { select: { nombre: true } },
 } satisfies Prisma.EquipoSelect;
 type PublicPdfEquipo = Prisma.EquipoGetPayload<{ select: typeof publicPdfSelect }>;
 
 export function publicReportData(e: PublicPdfEquipo): Ficha {
   const data: Ficha = {};
+  data.nombreUsuario = e.cuentadante?.nombre || 'Sin asignar';
   for (const key of [
     'placaSena',
     'componente',
@@ -205,7 +207,7 @@ export async function generatePublicPdf(e: PublicPdfEquipo, now = new Date()) {
       borderWidth: 0.5,
       borderColor: rgb(0.3, 0.3, 0.3),
     });
-  page.drawText('Consulta pública. Se omiten datos personales, notas internas y firmas.', {
+  page.drawText('Consulta pública. Incluye el cuentadante; se omiten contactos, notas internas y firmas.', {
     x: margin,
     y: top - ys[48] * scale - 16,
     size: 8,

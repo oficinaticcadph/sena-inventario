@@ -14,6 +14,7 @@ const equipo = {
   procesador: 'Procesador de prueba',
   ram: '16 GB',
   grupo: 'FORMACION',
+  cuentadante: { nombre: 'María Fernanda Pérez Gómez' },
   ficha: {
     so: 'Windows 11',
     antivirus: 'Antivirus verificado',
@@ -23,16 +24,17 @@ const equipo = {
     hostname: 'HOST_INTERNO',
   },
 };
-test('PDF público incluye solo campos técnicos y software permitido', () => {
+test('PDF público incluye cuentadante, campos técnicos y software permitido', () => {
   const data = publicReportData(equipo);
   assert.equal(data.antivirus, 'Antivirus verificado');
   assert.equal(data.office, 'Office 365');
+  assert.equal(data.nombreUsuario, equipo.cuentadante.nombre);
+  assert.equal(publicReportData({ ...equipo, cuentadante: null }).nombreUsuario, 'Sin asignar');
   for (const key of [
     'jefe',
     'observacion',
     'causas',
     'hostname',
-    'nombreUsuario',
     'contacto',
     'tecnico',
   ])
