@@ -1,4 +1,6 @@
 import { LoginForm } from '@/components/login-form';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 export default function LoginPage() {
   return (
     <div className="login">
@@ -24,6 +26,10 @@ export default function LoginPage() {
       </section>
       <section className="login-form">
         <div className="login-card">
+          <Link href="/" className="button secondary mb-6">
+            <ArrowLeft size={17} aria-hidden="true" />
+            Volver a consulta pública
+          </Link>
           <LoginForm />
         </div>
       </section>
