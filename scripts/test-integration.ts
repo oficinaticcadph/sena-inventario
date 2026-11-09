@@ -208,19 +208,84 @@ try {
     checks++;
   }
   assert.ok(publicHtml.includes('Historial de movimientos') && publicHtml.includes('<ol'));
-  assert.ok(publicHtml.includes(`/api/equipos/${id}/pdf`));
-  const publicPdf = await anon.request(`/api/equipos/${id}/pdf`);
+  assert.ok(publicHtml.includes('Nombre de quien descarga'));
+  const initialMovements = await db.movimiento.count({ where: { equipoId: id } });
+  await status(
+    await anon.request(`/api/equipos/${id}/pdf`),
+    405,
+    'GET no descarga ni crea auditoría',
+  );
+  await status(
+    await anon.request(`/api/equipos/${id}/pdf`, 'POST', {}),
+    400,
+    'PDF anónimo exige nombre',
+  );
+  await status(
+    await anon.request(`/api/equipos/${id}/pdf`, 'POST', { nombre: '  ' }),
+    400,
+    'Rechaza nombre vacío',
+  );
+  await status(
+    await anon.request(`/api/equipos/${id}/pdf`, 'POST', {
+      nombre: 'Visitante',
+      autorId: adminUser.id,
+    }),
+    400,
+    'No permite atribuir descarga a una cuenta',
+  );
+  await status(
+    await anon.request(
+      `/api/equipos/${id}/pdf`,
+      'POST',
+      { nombre: 'Visitante' },
+      'https://otro.example',
+    ),
+    403,
+    'PDF exige origen válido',
+  );
+  assert.equal(await db.movimiento.count({ where: { equipoId: id } }), initialMovements);
+  checks++;
+  const publicPdf = await anon.request(`/api/equipos/${id}/pdf`, 'POST', {
+    nombre: 'Visitante de prueba',
+  });
   await status(publicPdf, 200, 'PDF disponible sin sesión');
   assert.equal(publicPdf.headers.get('content-type'), 'application/pdf');
   assert.ok(publicPdf.headers.get('content-disposition')?.includes('.pdf'));
   const parsedPdf = await PDFDocument.load(await publicPdf.arrayBuffer());
   assert.equal(parsedPdf.getPageCount(), 1);
   await status(
-    await anon.request('/api/equipos/no-existe/pdf'),
+    await anon.request('/api/equipos/no-existe/pdf', 'POST', { nombre: 'Visitante de prueba' }),
     404,
     'PDF inexistente devuelve 404',
   );
   checks += 4;
+  const publicDownload = await db.movimiento.findFirstOrThrow({
+    where: { equipoId: id, formato: 'PDF' },
+  });
+  assert.equal(publicDownload.autorId, null);
+  assert.equal(publicDownload.solicitante, 'Visitante de prueba');
+  assert.equal(publicDownload.tipo, 'generacion');
+  checks += 3;
+  const publicHistory = await (await anon.request(`/equipos/${id}`)).text();
+  assert.ok(
+    publicHistory.includes('Visitante de prueba') && publicHistory.includes('Nombre declarado'),
+  );
+  checks++;
+  const adminHistory = await (await admin.request(`/equipos/${id}`)).text();
+  assert.ok(
+    adminHistory.includes('Visitante de prueba') && adminHistory.includes('nombre declarado'),
+  );
+  checks++;
+  await status(
+    await consulta.request(`/api/equipos/${id}/pdf`, 'POST', { nombre: 'Nombre falso ignorado' }),
+    200,
+    'PDF autenticado toma la cuenta',
+  );
+  const accountDownload = await db.movimiento.findFirstOrThrow({
+    where: { equipoId: id, formato: 'PDF', autorId: consultUser.id },
+  });
+  assert.equal(accountDownload.solicitante, null);
+  checks++;
   checks++;
   await status(await anon.request(`/api/equipos/${id}`, 'PATCH', {}), 401, 'Visitante no edita');
   await status(
@@ -267,9 +332,14 @@ try {
   checks++;
   assert.equal(
     await db.movimiento.count({
-      where: { equipoId: id, tipo: 'generacion', autorId: consultUser.id },
+      where: { equipoId: id, tipo: 'generacion', autorId: consultUser.id, formato: 'XLSX' },
     }),
     1,
+  );
+  checks++;
+  const downloadHistory = await (await anon.request(`/equipos/${id}`)).text();
+  assert.ok(
+    downloadHistory.includes(consultUser.nombre) && downloadHistory.includes('Cuenta autenticada'),
   );
   checks++;
   await status(

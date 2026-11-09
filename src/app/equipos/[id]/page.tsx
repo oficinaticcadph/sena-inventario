@@ -27,7 +27,7 @@ export default async function EquipoPage({ params }: { params: Promise<{ id: str
     id: m.id,
     tipo: m.tipo,
     detalle: m.detalle,
-    autor: m.autor.nombre,
+    autor: m.autor?.nombre || `${m.solicitante || 'Sin identificar'} (nombre declarado)`,
     fecha: m.createdAt.toISOString(),
     cambios: m.cambios,
   }));

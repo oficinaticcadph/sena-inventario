@@ -79,8 +79,10 @@ model Movimiento {
   equipoId String
   equipo Equipo @relation(fields:[equipoId],references:[id],onDelete:Restrict)
   tipo TipoMovimiento
-  autorId String
-  autor Administrador @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  autorId String?
+  autor Administrador? @relation(fields:[autorId],references:[id],onDelete:Restrict)
+  solicitante String?
+  formato String?
   detalle String
   cambios Json @default("{}")
   createdAt DateTime @default(now())

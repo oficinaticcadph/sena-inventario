@@ -57,7 +57,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             equipoId: id,
             autorId: user.id,
             tipo: 'generacion',
-            detalle: 'Hoja de vida GTI-F-132 generada.',
+            formato: 'XLSX',
+            detalle: 'Hoja de vida Excel generada para descarga.',
             cambios: { version: e.version, camposReporte: input.campos },
           },
         });

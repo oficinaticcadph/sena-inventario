@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Monitor, History, Download } from 'lucide-react';
+import { ArrowLeft, Monitor, History } from 'lucide-react';
 import { db } from '@/lib/db';
 import { Shell } from './shell';
+import { PdfDownload } from './pdf-download';
 
 const movementLabels: Record<string, string> = {
   alta: 'Equipo registrado en el inventario',
@@ -15,7 +16,7 @@ const movementLabels: Record<string, string> = {
 };
 
 export async function PublicEquipment({ id }: { id: string }) {
-  // Publicar solo el nombre del cuentadante; excluir contacto, autoría y notas privadas.
+  // Solo mostrar autoría en generaciones de documentos; no publicar notas internas ni contactos.
   const equipo = await db.equipo.findUnique({
     where: { id },
     select: {
@@ -32,7 +33,14 @@ export async function PublicEquipment({ id }: { id: string }) {
       activo: true,
       cuentadante: { select: { nombre: true } },
       movimientos: {
-        select: { id: true, tipo: true, createdAt: true },
+        select: {
+          id: true,
+          tipo: true,
+          createdAt: true,
+          formato: true,
+          solicitante: true,
+          autor: { select: { nombre: true } },
+        },
         orderBy: { createdAt: 'desc' },
       },
     },
@@ -82,10 +90,7 @@ export async function PublicEquipment({ id }: { id: string }) {
               Descarga el formato GTI-F-132 con los datos técnicos del equipo.
             </p>
           </div>
-          <a href={`/api/equipos/${id}/pdf`} className="button" download>
-            <Download size={18} />
-            Descargar hoja de vida en PDF
-          </a>
+          <PdfDownload id={id} />
         </div>
       </section>
       <section className="panel">
@@ -117,6 +122,13 @@ export async function PublicEquipment({ id }: { id: string }) {
               {equipo.movimientos.map((m) => (
                 <li key={m.id} className="event">
                   <h3>{movementLabels[m.tipo] || 'Movimiento registrado'}</h3>
+                  {m.tipo === 'generacion' && (
+                    <p>
+                      {m.formato === 'PDF' ? 'PDF' : 'Excel'} generado para descarga por{' '}
+                      {m.autor?.nombre || m.solicitante || 'Sin identificar'}
+                      {m.autor ? ' · Cuenta autenticada' : ' · Nombre declarado'}
+                    </p>
+                  )}
                   <time className="muted text-sm block mt-2" dateTime={m.createdAt.toISOString()}>
                     {m.createdAt.toLocaleString('es-CO', { timeZone: 'America/Bogota' })}
                   </time>
