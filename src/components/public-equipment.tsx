@@ -125,8 +125,12 @@ export async function PublicEquipment({ id }: { id: string }) {
                   {m.tipo === 'generacion' && (
                     <p>
                       {m.formato === 'PDF' ? 'PDF' : 'Excel'} generado para descarga por{' '}
-                      {m.autor?.nombre || m.solicitante || 'Sin identificar'}
-                      {m.autor ? ' · Cuenta autenticada' : ' · Nombre declarado'}
+                      {m.autor?.nombre || m.solicitante || 'Visitante anónimo'}
+                      {m.autor
+                        ? ' · Cuenta autenticada'
+                        : m.solicitante
+                          ? ' · Nombre declarado'
+                          : ''}
                     </p>
                   )}
                   <time className="muted text-sm block mt-2" dateTime={m.createdAt.toISOString()}>

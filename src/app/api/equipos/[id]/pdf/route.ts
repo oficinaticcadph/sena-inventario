@@ -10,11 +10,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     checkOrigin(req);
     const user = await currentUser();
     const input = z
-      .object({ nombre: z.string().trim().min(3).max(120).optional() })
+      .object({
+        nombre: z
+          .string()
+          .trim()
+          .max(120)
+          .refine((value) => !value || value.length >= 3)
+          .optional(),
+      })
       .strict()
       .parse(await body(req));
-    if (!user && !input.nombre)
-      throw new HttpError(400, 'Escribe tu nombre completo para registrar la descarga.');
     const { id } = await params;
     const equipo = await db.equipo.findUnique({
       where: { id },
@@ -32,7 +37,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             equipoId: id,
             tipo: 'generacion',
             autorId: user?.id ?? null,
-            solicitante: user ? null : input.nombre!,
+            solicitante: user ? null : input.nombre || null,
             formato: 'PDF',
             detalle: 'Hoja de vida PDF generada para descarga.',
           },

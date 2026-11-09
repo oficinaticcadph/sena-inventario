@@ -216,14 +216,14 @@ try {
     'GET no descarga ni crea auditoría',
   );
   await status(
-    await anon.request(`/api/equipos/${id}/pdf`, 'POST', {}),
+    await anon.request(`/api/equipos/${id}/pdf`, 'POST', { nombre: 'Ab' }),
     400,
-    'PDF anónimo exige nombre',
+    'Rechaza nombre incompleto si se proporciona',
   );
   await status(
-    await anon.request(`/api/equipos/${id}/pdf`, 'POST', { nombre: '  ' }),
+    await anon.request(`/api/equipos/${id}/pdf`, 'POST', { nombre: 'A'.repeat(121) }),
     400,
-    'Rechaza nombre vacío',
+    'Rechaza nombre demasiado largo',
   );
   await status(
     await anon.request(`/api/equipos/${id}/pdf`, 'POST', {
@@ -265,6 +265,29 @@ try {
   assert.equal(publicDownload.autorId, null);
   assert.equal(publicDownload.solicitante, 'Visitante de prueba');
   assert.equal(publicDownload.tipo, 'generacion');
+  for (const payload of [{}, { nombre: '' }, { nombre: '   ' }]) {
+    await status(
+      await anon.request(`/api/equipos/${id}/pdf`, 'POST', payload),
+      200,
+      'Descarga sin nombre',
+    );
+  }
+  assert.equal(
+    await db.movimiento.count({
+      where: { equipoId: id, tipo: 'generacion', formato: 'PDF', autorId: null, solicitante: null },
+    }),
+    3,
+  );
+  checks++;
+  const anonymousHistory = await (await anon.request(`/equipos/${id}`)).text();
+  assert.ok(
+    anonymousHistory.includes('Hoja de vida generada') &&
+      anonymousHistory.includes('Visitante anónimo'),
+  );
+  checks++;
+  const adminAnonymousHistory = await (await admin.request(`/equipos/${id}`)).text();
+  assert.ok(adminAnonymousHistory.includes('Visitante anónimo'));
+  checks++;
   checks += 3;
   const publicHistory = await (await anon.request(`/equipos/${id}`)).text();
   assert.ok(

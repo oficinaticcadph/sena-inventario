@@ -42,14 +42,13 @@ export function PdfDownload({ id }: { id: string }) {
     >
       <div className="search-row mt-4">
         <label className="field flex-1">
-          Nombre de quien descarga
+          Nombre de quien descarga (opcional)
           <input
             name="nombre"
-            required
             minLength={3}
             maxLength={120}
             autoComplete="name"
-            placeholder="Escribe tu nombre completo"
+            placeholder="Puedes dejarlo vacío"
             disabled={busy}
           />
         </label>
@@ -59,8 +58,9 @@ export function PdfDownload({ id }: { id: string }) {
         </button>
       </div>
       <p className="muted text-sm mt-3">
-        Tu nombre y la fecha quedarán visibles en el historial público como nombre declarado, sin
-        verificación de identidad.
+        La generación quedará registrada con fecha y hora. Si escribes tu nombre, aparecerá en el
+        historial público como nombre declarado, sin verificación de identidad. Si lo dejas vacío,
+        se registrará como visitante anónimo.
       </p>
       {error && (
         <p role="alert" className="error mt-3">

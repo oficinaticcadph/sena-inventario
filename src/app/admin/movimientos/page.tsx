@@ -79,7 +79,8 @@ export default async function Movimientos({
                     <span className="badge gray">{m.tipo}</span>
                   </td>
                   <td>
-                    {m.autor?.nombre || `${m.solicitante || 'Sin identificar'} (nombre declarado)`}
+                    {m.autor?.nombre ||
+                      (m.solicitante ? `${m.solicitante} (nombre declarado)` : 'Visitante anónimo')}
                   </td>
                   <td className="min-w-64 max-w-xl whitespace-normal">{m.detalle}</td>
                 </tr>
