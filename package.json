@@ -20,6 +20,7 @@
   "dependencies": {
     "@fontsource/work-sans": "^5.2.0",
     "@prisma/client": "^6.19.0",
+    "@xmldom/xmldom": "^0.9.12",
     "bcryptjs": "^3.0.2",
     "exceljs": "^4.4.0",
     "jszip": "^3.10.2",

@@ -119,3 +119,70 @@ model IncidenciaImportacion {
   equipoId String?
   @@unique([hash,grupo,fila])
 }
+
+model SolicitudBien {
+  id Int @id @default(autoincrement())
+  tokenHash String @unique
+  claveCreacion String @unique
+  hashInicial String
+  datos Json
+  version Int @default(1)
+  origen String
+  registradoPor String
+  autorId String?
+  fechaSolicitud DateTime @db.Date
+  movimiento String
+  destino String
+  area String
+  cuentadante String
+  identificacion String
+  busqueda String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  eventos SolicitudBienEvento[]
+  adjuntos SolicitudBienAdjunto[]
+  @@index([deletedAt,fechaSolicitud,id])
+}
+model SolicitudBienEvento {
+  id String @id @default(cuid())
+  solicitudId Int
+  solicitud SolicitudBien @relation(fields:[solicitudId],references:[id],onDelete:Restrict)
+  version Int
+  accion String
+  detalle String
+  actor String
+  autorId String?
+  snapshot Json?
+  createdAt DateTime @default(now())
+  @@index([solicitudId,createdAt])
+}
+model SolicitudBienAdjunto {
+  id String @id @default(cuid())
+  solicitudId Int
+  solicitud SolicitudBien @relation(fields:[solicitudId],references:[id],onDelete:Restrict)
+  version Int
+  nombre String
+  tipo String
+  size Int
+  sha256 String
+  completo Boolean @default(false)
+  actor String
+  autorId String?
+  createdAt DateTime @default(now())
+  finalizadoAt DateTime?
+  partes SolicitudBienParte[]
+  @@index([solicitudId,completo])
+}
+model SolicitudBienParte {
+  adjuntoId String
+  adjunto SolicitudBienAdjunto @relation(fields:[adjuntoId],references:[id],onDelete:Cascade)
+  indice Int
+  datos Bytes
+  @@id([adjuntoId,indice])
+}
+model LimiteBienes {
+  clave String @id
+  intentos Int @default(0)
+  ventana DateTime @default(now())
+}

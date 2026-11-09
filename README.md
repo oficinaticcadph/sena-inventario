@@ -167,7 +167,44 @@ En producción deben estar disponibles `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_S
 
 Si los registros muestran `[next-auth][error][NO_SECRET]`, revisa que `NEXTAUTH_SECRET` tenga un valor y esté asignado al entorno **Production**, y vuelve a desplegar. **Ready** confirma el despliegue, pero también hay que abrir la página y revisar **Logs** si aparece un error de ejecución.
 
-## Seguridad
+## Control de Entrada y Salida de Bienes — GIL-F-014
+
+La opción **Control de Entrada y Salida de Bienes** del menú abre `/bienes`, tanto para consulta pública como para administradores. Usa el formato institucional GIL-F-014, versión 07, con regional 41 Huila y centro de costos 9525 CADPH.
+
+### Consulta pública
+
+1. Diligencia fecha, movimiento (salida o ingreso/reintegro), jefe/coordinador, cuentadante, identificación, destino e ítems. Para cuentadantes múltiples agrega sus integrantes; la ficha se habilita únicamente para Formación.
+2. Pulsa **Guardar solicitud**. El registro queda en Neon y disponible para revisión administrativa. Sin guardar no se habilitan PDF, Excel ni carga del firmado; si modificas datos debes guardar nuevamente.
+3. Conserva en privado el **código de seguimiento**. Permite recuperar únicamente esa solicitud desde otro dispositivo, mediante **Volver a una solicitud guardada**. El navegador recuerda el código durante la sesión; no conserva el formulario en `localStorage`. Quien tenga el código podrá acceder a la solicitud, modificarla y adjuntar documentos. Si lo pierdes, contacta al administrador.
+4. Descarga PDF o Excel, firma el documento y usa **Adjuntar documento firmado**. Se aceptan PDF, JPG y PNG, hasta **10 MB por archivo** y cinco archivos por versión. Los archivos se guardan aparte del formato generado.
+
+### Administración y trazabilidad
+
+Con una cuenta administradora, la misma página muestra **Historial de movimientos**: búsqueda por cuentadante, identificación, código SENA o descripción; filtros por fecha, movimiento, destino y área; orden y paginación. Las acciones permiten ver detalle, editar, duplicar, eliminar con confirmación y descargar PDF/Excel. **Exportar historial filtrado** incluye todos los registros del filtro, con una fila por ítem, independientemente de la página visible.
+
+Cada solicitud conserva autor/origen, fecha y hora, versiones, datos históricos, documentos generados y archivos firmados. Un firmado de una versión anterior se conserva identificado con esa versión, pero no marca como firmada una edición posterior. Eliminar retira la solicitud del historial activo y conserva sus datos, eventos y archivos para auditoría. Duplicar crea una solicitud nueva sin copiar firmas ni historial. La aplicación registra la generación o solicitud de descarga; no certifica que el navegador haya terminado de guardar el archivo ni valida electrónicamente una firma.
+
+### Formato y almacenamiento
+
+`templates/GIL-F-014.xlsx` conserva el archivo original. El generador modifica las celdas de diligenciamiento, manteniendo tablas, bordes, logos y casillas. Añade fecha real y listas editables en Excel. El PDF utiliza un fondo vectorial exportado de ese mismo formato, ajustado a carta. Si hay más de seis ítems o tres integrantes, repite el formato en páginas/hojas adicionales. Si un texto excede el espacio disponible del PDF se solicita acortarlo; no se recorta silenciosamente.
+
+Las tablas `SolicitudBien`, `SolicitudBienEvento`, `SolicitudBienAdjunto` y `SolicitudBienParte` guardan datos y archivos privados en Postgres. Las cargas/descargas de firmados se transfieren en partes de 512 KB, con comprobación SHA-256 al finalizar. El servidor verifica administrador o código en cada acceso; el público no puede listar solicitudes ajenas ni acceder a sus archivos. Los códigos se almacenan hasheados, no se envían en URLs y no forman parte del historial administrativo.
+
+El presupuesto predeterminado para firmados es **256 MB en total**, configurable mediante `BIENES_STORAGE_LIMIT_MB`. Al iniciar una carga se limpian cargas incompletas de más de 24 horas. Los archivos completos y registros eliminados siguen ocupando espacio por su conservación para auditoría; planifica backups y retención según las políticas del centro y la capacidad de Neon. La recepción pública aplica límites temporales compartidos por origen de conexión.
+
+Para una instalación existente aplica `prisma/migrations/20261109150000_solicitudes_bienes` con `npm.cmd run db:migrate` antes de publicar este módulo. No se vuelve a ejecutar la semilla del inventario ni se requiere otro proveedor de archivos. Las plantillas se incluyen en la función de Vercel mediante `outputFileTracingIncludes`.
+
+Archivos principales: `src/app/bienes/page.tsx`, `src/components/bienes-frame.tsx`, `public/bienes/`, `src/app/api/bienes/[[...path]]/route.ts`, `src/lib/bienes-service.ts`, `src/lib/bienes-validation.ts`, `src/lib/gil-format.js`, `templates/GIL-F-014*`, esquema y migración Prisma. La interfaz del módulo está aislada dentro del marco de la aplicación para conservar su diseño sin alterar los formularios del inventario.
+
+Prueba manual: abre `/bienes` sin sesión, verifica que las descargas estén deshabilitadas, guarda una solicitud válida, conserva el código, descarga ambos formatos y adjunta un firmado. Recupera la solicitud con el código desde otra sesión. Entra como administrador y comprueba el historial, filtros, detalle, edición y exportación. Tras editar, el firmado anterior debe mantener su versión y la nueva debe quedar pendiente de firmado.
+
+Prueba automatizada con servidor local en puerto 3004 y base local activa:
+
+```powershell
+node node_modules/tsx/dist/cli.mjs scripts/test-bienes-integration.ts
+```
+
+## Controles de seguridad
 
 - Hash bcrypt, coste 12, y límites por bytes para evitar truncamiento de contraseñas.
 - Sesiones de 8 horas. Cada acceso protegido verifica cuenta activa y versión de sesión en Postgres; desactivar una cuenta revoca sus sesiones.

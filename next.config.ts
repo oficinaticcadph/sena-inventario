@@ -4,6 +4,7 @@ const config: NextConfig = {
   outputFileTracingIncludes: {
     '/api/equipos/*/excel': ['./templates/**/*'],
     '/api/equipos/*/pdf': ['./templates/**/*'],
+    '/api/bienes/[[...path]]': ['./templates/**/*'],
   },
   async headers() {
     return [
@@ -15,6 +16,10 @@ const config: NextConfig = {
           { key: 'Referrer-Policy', value: 'same-origin' },
           { key: 'Cache-Control', value: 'private, no-store' },
         ],
+      },
+      {
+        source: '/bienes/formulario.html',
+        headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }],
       },
     ];
   },

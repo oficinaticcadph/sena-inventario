@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Control de Entrada y Salida de Bienes SENA CADPH</title>
+    <link rel="stylesheet" href="/bienes/style.css" />
+  </head>
+  <body>
+    <main class="main bienes-main">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">Gestión de infraestructura y logística</div>
+          <h1>Control de Entrada y Salida de Bienes</h1>
+          <p>Registra las solicitudes y consulta cuándo ingresan o salen los bienes.</p>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button
+          role="tab"
+          id="tab-form"
+          class="tab active"
+          aria-selected="true"
+          aria-controls="view-form"
+        >
+          Solicitud de bienes</button
+        ><button
+          role="tab"
+          id="tab-history"
+          hidden
+          class="tab"
+          aria-selected="false"
+          aria-controls="view-history"
+        >
+          Historial de movimientos <span class="counter" id="history-count">0</span>
+        </button>
+      </div>
+      <div id="notice" role="status" hidden></div>
+      <section id="view-form" role="tabpanel" aria-labelledby="tab-form">
+        <div class="toolbar">
+          <div>
+            <span class="badge gray" id="record-status">Nueva solicitud</span
+            ><span class="muted small">GIL-F-014 · Versión 07</span>
+          </div>
+          <div class="actions">
+            <button class="button secondary" id="pdf-current" disabled>
+              <span data-icon="download"></span>Descargar PDF</button
+            ><button class="button secondary" id="excel-current" disabled>
+              <span data-icon="file"></span>Descargar Excel (.xlsx)
+            </button>
+          </div>
+        </div>
+        <form id="request-form" novalidate>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Solicitud de bienes para uso de cuentadantes</h2>
+                <p>Los campos con * son obligatorios.</p>
+              </div>
+              <span class="badge blue">GIL-F-014</span>
+            </div>
+            <div class="panel-body">
+              <div class="fixed-header">
+                <img src="assets/sena.png" alt="SENA" />
+                <div>
+                  <strong>GESTIÓN DE INFRAESTRUCTURA Y LOGÍSTICA</strong
+                  ><span>FORMATO SOLICITUD DE BIENES PARA USO DE CUENTADANTES</span>
+                </div>
+                <small>Versión 07<br />Código GIL-F-014</small>
+              </div>
+              <dl class="fixed-grid">
+                <div>
+                  <dt>Código regional</dt>
+                  <dd>41</dd>
+                </div>
+                <div>
+                  <dt>Regional</dt>
+                  <dd>Huila</dd>
+                </div>
+                <div>
+                  <dt>Centro de costos</dt>
+                  <dd>9525</dd>
+                </div>
+                <div>
+                  <dt>Nombre del centro</dt>
+                  <dd>Centro Agroempresarial Y Desarrollo Pecuario Del Huila</dd>
+                </div>
+              </dl>
+              <fieldset class="classification">
+                <legend>Clasificación de la información</legend>
+                <label
+                  ><input type="radio" name="classification" value="Pública" checked />
+                  Pública</label
+                ><label
+                  ><input type="radio" name="classification" value="Pública Clasificada" /> Pública
+                  Clasificada</label
+                ><label
+                  ><input type="radio" name="classification" value="Pública Reservada" /> Pública
+                  Reservada</label
+                >
+              </fieldset>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Datos de la solicitud</h2>
+                <p>Selecciona el movimiento y la fecha en que necesitas los bienes.</p>
+              </div>
+            </div>
+            <div class="panel-body forms-grid">
+              <label class="field"
+                >Tipo de movimiento *<select name="movement" required>
+                  <option value="SALIDA">Salida de bienes</option>
+                  <option value="INGRESO">Ingreso (reintegro) de bienes a la Entidad</option>
+                </select></label
+              >
+              <label class="field"
+                >Fecha solicitud *<input type="date" name="date" required
+              /></label>
+              <label class="field"
+                >Área<input name="area" maxlength="160" placeholder="Escribe el área"
+              /></label>
+              <label class="field wide"
+                >Nombre de jefe de oficina o coordinador de área *<input
+                  name="head"
+                  required
+                  maxlength="160"
+                  placeholder="Nombre completo"
+              /></label>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Cuentadante y destino</h2>
+                <p>Identifica a la persona o al grupo que recibirá o reintegrará los bienes.</p>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="forms-grid">
+                <label class="field"
+                  >Tipo de cuentadante *<select name="holderType" required>
+                    <option value="">Selecciona una opción</option>
+                    <option>MÚLTIPLE</option>
+                    <option>UNIPERSONAL</option>
+                  </select></label
+                ><label class="field span-2"
+                  >Nombre del cuentadante unipersonal o múltiple *<input
+                    name="holder"
+                    required
+                    maxlength="180"
+                    placeholder="Nombre del cuentadante" /></label
+                ><label class="field"
+                  >N° de identificación *<input
+                    name="identification"
+                    required
+                    maxlength="60"
+                    placeholder="Número o código de identificación" /></label
+                ><label class="field"
+                  >Destino de los bienes solicitados *<select name="destination" required>
+                    <option value="">Selecciona una opción</option>
+                    <option>Área administrativa</option>
+                    <option>Formación</option>
+                  </select></label
+                ><label class="field"
+                  >Código de grupo o ficha de caracterización<input
+                    name="group"
+                    maxlength="100"
+                    disabled
+                    placeholder="Solo para Formación"
+                  /><small>Se habilita al seleccionar Formación.</small></label
+                >
+              </div>
+              <section id="members-section" hidden>
+                <div class="section-heading">
+                  <div>
+                    <h3>Integrantes del cuentadante múltiple</h3>
+                    <p class="muted small">
+                      Relaciona al menos un integrante con nombre e identificación.
+                    </p>
+                  </div>
+                  <button type="button" class="button secondary" id="add-member">
+                    + Agregar fila
+                  </button>
+                </div>
+                <div class="table-wrap">
+                  <table class="members-table">
+                    <thead>
+                      <tr>
+                        <th>NOMBRE</th>
+                        <th>N° DE IDENTIFICACIÓN</th>
+                        <th><span class="sr-only">Acciones</span></th>
+                      </tr>
+                    </thead>
+                    <tbody id="members-body"></tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Bienes solicitados</h2>
+                <p>Agrega al menos un ítem con descripción y cantidad solicitada.</p>
+              </div>
+              <button type="button" class="button secondary" id="add-item">+ Agregar ítem</button>
+            </div>
+            <div class="table-wrap">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>ÍTEM</th>
+                    <th>CÓDIGO SENA</th>
+                    <th>DESCRIPCIÓN DEL BIEN *</th>
+                    <th>UNIDAD DE MEDIDA</th>
+                    <th>CANTIDAD SOLICITADA *</th>
+                    <th>CANTIDAD ENTREGADA</th>
+                    <th>OBSERVACIONES</th>
+                    <th><span class="sr-only">Eliminar</span></th>
+                  </tr>
+                </thead>
+                <tbody id="items-body"></tbody>
+              </table>
+            </div>
+            <div class="items-footer">
+              <span id="items-count">1 ítem</span
+              ><span>En celular puedes deslizar la tabla horizontalmente.</span>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h2>Autorización</h2></div>
+            <div class="panel-body forms-grid">
+              <label class="field"
+                >Nombre de quien autoriza<input name="authorizer" maxlength="160" /></label
+              ><label class="field">Cargo<input name="position" maxlength="160" /></label
+              ><label class="field"
+                >Firma<input
+                  name="signature"
+                  maxlength="160"
+                  placeholder="Texto o espacio para firma manuscrita"
+                /><small>Este campo no crea una firma digital certificada.</small></label
+              >
+            </div>
+          </section>
+          <p class="document-note">
+            La cantidad de bienes entregada puede ser inferior a la cantidad de bienes solicitados
+            toda vez que la solicitud se atiende de acuerdo a las existencias físicas de bienes en
+            cada almacén.
+          </p>
+          <div id="errors" class="error" role="alert" hidden></div>
+          <div class="bottom-actions">
+            <button type="button" class="button secondary" id="new-request">Nueva solicitud</button
+            ><button class="button" id="save-request" type="submit">
+              <span data-icon="save"></span>Guardar solicitud
+            </button>
+          </div>
+        </form>
+      </section>
+      <section id="view-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Historial de movimientos</h2>
+              <p>Solicitudes recibidas y sus entradas y salidas.</p>
+            </div>
+            <button class="button secondary" id="export-history">
+              <span data-icon="file"></span>Exportar historial filtrado
+            </button>
+          </div>
+          <div class="panel-body">
+            <div class="filters">
+              <label class="field search-filter"
+                >Buscar<input
+                  id="filter-search"
+                  placeholder="Cuentadante, identificación, código SENA o descripción" /></label
+              ><label class="field">Desde<input type="date" id="filter-from" /></label
+              ><label class="field">Hasta<input type="date" id="filter-to" /></label
+              ><label class="field"
+                >Movimiento<select id="filter-movement">
+                  <option value="">Todos</option>
+                  <option>SALIDA</option>
+                  <option>INGRESO</option>
+                </select></label
+              ><label class="field"
+                >Destino<select id="filter-destination">
+                  <option value="">Todos</option>
+                  <option>Área administrativa</option>
+                  <option>Formación</option>
+                </select></label
+              ><label class="field"
+                >Área<input id="filter-area" placeholder="Filtrar por área" /></label
+              ><label class="field"
+                >Ordenar<select id="filter-order">
+                  <option value="desc">Más recientes primero</option>
+                  <option value="asc">Más antiguos primero</option>
+                </select></label
+              ><button class="text-button" id="reset-filters">Limpiar filtros</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>FECHA SOLICITUD</th>
+                  <th>MOVIMIENTO</th>
+                  <th>CUENTADANTE</th>
+                  <th>DESTINO / ÁREA</th>
+                  <th>ÍTEMS</th>
+                  <th>REGISTRADO POR</th>
+                  <th>ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody id="history-body"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="history-empty">
+            <span data-icon="history"></span>
+            <h3>Aún no hay movimientos</h3>
+            <p>Las solicitudes guardadas aparecerán en este historial.</p>
+          </div>
+          <div class="table-footer">
+            <span id="history-total">0 registros</span>
+            <div class="pagination">
+              <button class="button secondary" id="previous-page">Anterior</button
+              ><span id="page-number">Página 1</span
+              ><button class="button secondary" id="next-page">Siguiente</button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+    <dialog id="detail-dialog">
+      <div class="dialog-top">
+        <h2 id="dialog-title">Detalle de la solicitud</h2>
+        <button class="button secondary" id="close-dialog">Cerrar</button>
+      </div>
+      <div class="detail-actions actions">
+        <button class="button secondary" id="detail-pdf">Descargar PDF</button
+        ><button class="button secondary" id="detail-excel">Descargar Excel (.xlsx)</button>
+      </div>
+      <div id="document-preview" class="document-preview"></div>
+    </dialog>
+    <script src="/bienes/ui.js"></script>
+    <script src="/bienes/remote.js"></script>
+  </body>
+</html>

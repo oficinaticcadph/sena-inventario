@@ -10,6 +10,7 @@ import {
   LogOut,
   ShieldCheck,
   ChevronRight,
+  ArrowLeftRight,
 } from 'lucide-react';
 export function Shell({
   children,
@@ -22,6 +23,7 @@ export function Shell({
   const admin = user?.rol === 'admin';
   const links = [
     { href: '/', label: 'Inventario de equipos', icon: Monitor },
+    { href: '/bienes', label: 'Control de Entrada y Salida de Bienes', icon: ArrowLeftRight },
     ...(admin
       ? [
           { href: '/admin', label: 'Administración', icon: LayoutDashboard },
@@ -86,7 +88,11 @@ export function Shell({
             <span>SENA · CADPH</span>
             <ChevronRight size={13} />
             <span>
-              {pathname.startsWith('/admin') ? 'Administración' : 'Inventario de equipos'}
+              {pathname.startsWith('/bienes')
+                ? 'Control de bienes'
+                : pathname.startsWith('/admin')
+                  ? 'Administración'
+                  : 'Inventario de equipos'}
             </span>
           </div>
           {children}
@@ -109,9 +115,15 @@ export function Shell({
           <footer className="footer flex-wrap">
             <div className="min-w-0">
               <span>Servicio Nacional de Aprendizaje SENA</span>
-              <span className="block mt-1">Centro Agroempresarial y Desarrollo Pecuario del Huila (CADPH)</span>
+              <span className="block mt-1">
+                Centro Agroempresarial y Desarrollo Pecuario del Huila (CADPH)
+              </span>
             </div>
-            <span>Formato GTI-F-132 · Versión 06</span>
+            <span>
+              {pathname.startsWith('/bienes')
+                ? 'Formato GIL-F-014 · Versión 07'
+                : 'Formato GTI-F-132 · Versión 06'}
+            </span>
           </footer>
         </main>
       </div>
